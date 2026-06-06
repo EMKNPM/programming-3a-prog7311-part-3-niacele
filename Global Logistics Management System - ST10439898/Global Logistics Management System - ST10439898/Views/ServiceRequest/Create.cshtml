@@ -1,0 +1,246 @@
+@model Global_Logistics_Management_System___ST10439898.Models.ServiceRequest
+
+@{
+    ViewData["Title"] = "Create Service Request";
+}
+
+<style>
+    .form-container {
+        max-width: 700px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-header {
+        background-color: #2C3E50;
+        color: white;
+        padding: 20px 30px;
+    }
+
+        .form-header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .form-header p {
+            font-size: 0.9rem;
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+        }
+
+    .form-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .control-label {
+        font-weight: 600;
+        color: #2C3E50;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #E67E22;
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+            outline: none;
+        }
+
+    select.form-control {
+        cursor: pointer;
+        background-color: white;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .text-danger {
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: block;
+        color: #e74c3c;
+    }
+
+    .text-muted {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .conversion-info {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+        border-left: 4px solid #27AE60;
+    }
+
+    .zar-amount {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #27AE60;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #ecf0f1;
+    }
+
+    .btn-submit {
+        background-color: #27AE60;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-submit:hover {
+            background-color: #219A52;
+        }
+
+    .btn-back {
+        background-color: #95a5a6;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-back:hover {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+    .required-field::after {
+        content: " *";
+        color: #e74c3c;
+    }
+
+    hr {
+        display: none;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <h1>Create Service Request</h1>
+        <p>Submit a new service request for a contract</p>
+    </div>
+
+    <div class="form-body">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="contractID" class="control-label required-field">Contract</label>
+                <select asp-for="contractID" class="form-control" asp-items="ViewBag.contractID">
+                    <option value="">-- Select Contract --</option>
+                </select>
+                <span asp-validation-for="contractID" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Description" class="control-label required-field">Description</label>
+                <textarea asp-for="Description" class="form-control" placeholder="Describe the service request in detail..."></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label required-field">Amount (USD)</label>
+                <input type="number" id="originalAmount" name="OriginalCost" class="form-control" step="0.01" placeholder="0.00" required />
+                <span class="text-muted">Enter the amount in US Dollars (USD)</span>
+            </div>
+
+            <div class="conversion-info">
+                <label class="control-label" style="margin-bottom: 5px;">Amount in South African Rand (ZAR)</label>
+                <div class="zar-amount" id="zarAmountDisplay">R 0.00</div>
+                <span class="text-muted">Auto-converted using live exchange rates</span>
+            </div>
+            <input type="hidden" id="CostinZAR" name="CostinZAR" />
+
+            <div class="form-group">
+                <label asp-for="requestStatus" class="control-label">Request Status</label>
+                <select asp-for="requestStatus" class="form-control" asp-items="Html.GetEnumSelectList<Global_Logistics_Management_System___ST10439898.Models.ServiceRequest.Status>()">
+                    <option value="">-- Select Status --</option>
+                </select>
+                <span asp-validation-for="requestStatus" class="text-danger"></span>
+            </div>
+
+            <div class="form-actions">
+                <input type="submit" value="Create Service Request" class="btn-submit" />
+                <a asp-action="Index" class="btn-back">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        async function convertCurrency() {
+            const amount = document.getElementById('originalAmount').value;
+            const zarAmountDisplay = document.getElementById('zarAmountDisplay');
+            const costInZarField = document.getElementById('CostinZAR');
+
+            if (!amount || amount <= 0) {
+                zarAmountDisplay.innerHTML = 'R 0.00';
+                costInZarField.value = '';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/ServiceRequest/ConvertCurrency?amount=${amount}&fromCurrency=USD`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const zarAmount = parseFloat(data.zarAmount).toFixed(2);
+                    zarAmountDisplay.innerHTML = `R ${zarAmount}`;
+                    costInZarField.value = zarAmount;
+                } else {
+                    zarAmountDisplay.innerHTML = 'R 0.00';
+                    costInZarField.value = '';
+                }
+            } catch (error) {
+                console.error('Error converting currency:', error);
+                zarAmountDisplay.innerHTML = 'R 0.00';
+                costInZarField.value = '';
+            }
+        }
+
+        const originalAmountInput = document.getElementById('originalAmount');
+
+        if (originalAmountInput) {
+            originalAmountInput.addEventListener('input', convertCurrency);
+        }
+    </script>
+}

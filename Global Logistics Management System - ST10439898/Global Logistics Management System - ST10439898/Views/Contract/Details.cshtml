@@ -1,0 +1,242 @@
+@model Global_Logistics_Management_System___ST10439898.Models.Contract
+
+@{
+    ViewData["Title"] = "Contract Details";
+}
+
+<style>
+    .details-card {
+        max-width: 700px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .details-header {
+        background-color: #2C3E50;
+        color: white;
+        padding: 20px 30px;
+    }
+
+        .details-header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .details-header p {
+            font-size: 0.9rem;
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+        }
+
+    .contract-info {
+        padding: 30px;
+    }
+
+    .info-section {
+        margin-bottom: 25px;
+    }
+
+    .info-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2C3E50;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #E67E22;
+        display: inline-block;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 12px 0;
+        border-bottom: 1px solid #ecf0f1;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        font-weight: 600;
+        color: #2C3E50;
+        width: 140px;
+        flex-shrink: 0;
+    }
+
+    .info-value {
+        color: #34495E;
+        flex: 1;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-draft {
+        background-color: #95a5a6;
+        color: white;
+    }
+
+    .status-active {
+        background-color: #27AE60;
+        color: white;
+    }
+
+    .status-onhold {
+        background-color: #E67E22;
+        color: white;
+    }
+
+    .status-expired {
+        background-color: #c0392b;
+        color: white;
+    }
+
+    .contract-link {
+        color: #E67E22;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .contract-link:hover {
+            text-decoration: underline;
+        }
+
+    .action-buttons {
+        padding: 20px 30px 30px 30px;
+        display: flex;
+        gap: 15px;
+        background-color: #f8f9fa;
+        margin-top: 10px;
+    }
+
+    .btn-edit {
+        background-color: #E67E22;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-edit:hover {
+            background-color: #D35400;
+            color: white;
+        }
+
+    .btn-back {
+        background-color: #95a5a6;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-back:hover {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+    hr {
+        display: none;
+    }
+</style>
+
+<div class="details-card">
+    <div class="details-header">
+        <h1>Contract Details</h1>
+        <p>View complete contract information</p>
+    </div>
+
+    <div class="contract-info">
+        <div class="info-section">
+            <div class="info-title">Contract Information</div>
+            <div class="info-row">
+                <div class="info-label">Contract ID:</div>
+                <div class="info-value">#@Model.contractID</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Service Level:</div>
+                <div class="info-value">@Html.DisplayFor(model => model.serviceLevel)</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Status:</div>
+                <div class="info-value">
+                    @{
+                        string statusClass = Model.contractStatus.ToString().ToLower();
+                    }
+                    <span class="status-badge status-@statusClass">
+                        @Html.DisplayFor(model => model.contractStatus)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">Dates</div>
+            <div class="info-row">
+                <div class="info-label">Start Date:</div>
+                <div class="info-value">@Model.startDate.ToString("yyyy-MM-dd")</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">End Date:</div>
+                <div class="info-value">@Model.endDate.ToString("yyyy-MM-dd")</div>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-title">Client Information</div>
+            @if (Model.Client != null)
+            {
+                <div class="info-row">
+                    <div class="info-label">Company Name:</div>
+                    <div class="info-value">@Model.Client.companyName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Contact Person:</div>
+                    <div class="info-value">@Model.Client.clientName</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">
+                        <a href="mailto:@Model.Client.clientEmail" style="color: #E67E22; text-decoration: none;">
+                            @Model.Client.clientEmail
+                        </a>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Region:</div>
+                    <div class="info-value">@Model.Client.clientRegion</div>
+                </div>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.signedAgreementPath))
+        {
+            <div class="info-section">
+                <div class="info-title">Signed Agreement</div>
+                <div class="info-row">
+                    <div class="info-label">Agreement:</div>
+                    <div class="info-value">
+                        <a href="@Model.signedAgreementPath" target="_blank" class="contract-link">📄 View Signed Agreement</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="action-buttons">
+        <a asp-action="Edit" asp-route-id="@Model?.contractID" class="btn-edit">✏️ Edit Contract</a>
+        <a asp-action="Index" class="btn-back">← Back to List</a>
+    </div>
+</div>

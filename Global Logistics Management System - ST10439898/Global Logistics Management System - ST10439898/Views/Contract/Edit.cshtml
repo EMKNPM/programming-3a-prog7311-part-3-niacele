@@ -1,0 +1,222 @@
+@model Global_Logistics_Management_System___ST10439898.Models.Contract
+
+@{
+    ViewData["Title"] = "Edit Contract";
+}
+
+<style>
+    .edit-container {
+        max-width: 700px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .edit-header {
+        background-color: #2C3E50;
+        color: white;
+        padding: 20px 30px;
+    }
+
+        .edit-header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .edit-header p {
+            font-size: 0.9rem;
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+        }
+
+    .edit-form {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .control-label {
+        font-weight: 600;
+        color: #2C3E50;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #E67E22;
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+            outline: none;
+        }
+
+    select.form-control {
+        cursor: pointer;
+        background-color: white;
+    }
+
+    .text-danger {
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: block;
+        color: #e74c3c;
+    }
+
+    .text-muted {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .current-file {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 6px;
+        margin-top: 10px;
+        font-size: 0.85rem;
+    }
+
+        .current-file a {
+            color: #E67E22;
+            text-decoration: none;
+        }
+
+            .current-file a:hover {
+                text-decoration: underline;
+            }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #ecf0f1;
+    }
+
+    .btn-save {
+        background-color: #27AE60;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-save:hover {
+            background-color: #219A52;
+        }
+
+    .btn-back {
+        background-color: #95a5a6;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-back:hover {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+    hr {
+        display: none;
+    }
+</style>
+
+<div class="edit-container">
+    <div class="edit-header">
+        <h1>Edit Contract</h1>
+        <p>Update contract information</p>
+    </div>
+
+    <div class="edit-form">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="contractID" />
+
+            <div class="form-group">
+                <label asp-for="clientID" class="control-label">Client</label>
+                <select asp-for="clientID" class="form-control" asp-items="ViewBag.clientID">
+                    <option value="">-- Select Client --</option>
+                </select>
+                <span asp-validation-for="clientID" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="startDate" class="control-label">Start Date</label>
+                <input asp-for="startDate" class="form-control" type="date" />
+                <span asp-validation-for="startDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="endDate" class="control-label">End Date</label>
+                <input asp-for="endDate" class="form-control" type="date" />
+                <span asp-validation-for="endDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="contractStatus" class="control-label">Contract Status</label>
+                <select asp-for="contractStatus" class="form-control" asp-items="Html.GetEnumSelectList<Contract.Status>()"></select>
+                <span asp-validation-for="contractStatus" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="serviceLevel" class="control-label">Service Level</label>
+                <input asp-for="serviceLevel" class="form-control" placeholder="e.g., Premium, Standard, Basic" />
+                <span asp-validation-for="serviceLevel" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Upload New Signed Agreement (PDF)</label>
+                <input type="file" name="pdfUpload" class="form-control" accept=".pdf" />
+                <span class="text-muted">Leave empty to keep existing file</span>
+
+                @if (!string.IsNullOrEmpty(Model.signedAgreementPath))
+                {
+                    <div class="current-file">
+                        📄 Current file: <a href="@Model.signedAgreementPath" target="_blank">View Signed Agreement</a>
+                        <input type="hidden" name="existingFilePath" value="@Model.signedAgreementPath" />
+                    </div>
+                }
+            </div>
+
+            <div class="form-actions">
+                <input type="submit" value="Save Changes" class="btn-save" />
+                <a asp-action="Index" class="btn-back">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

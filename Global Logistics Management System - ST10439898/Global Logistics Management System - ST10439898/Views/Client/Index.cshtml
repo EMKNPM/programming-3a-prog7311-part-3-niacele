@@ -1,0 +1,157 @@
+@model IEnumerable<Global_Logistics_Management_System___ST10439898.Models.Client>
+
+@{
+    ViewData["Title"] = "Clients";
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #E67E22;
+    }
+
+        .page-header h1 {
+            font-size: 2rem;
+            margin: 0;
+            color: #2C3E50;
+        }
+
+    .btn-create {
+        background-color: #27AE60;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+        display: inline-block;
+    }
+
+        .btn-create:hover {
+            background-color: #219A52;
+            color: white;
+        }
+
+    .table-container {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+        .table thead {
+            background-color: #2C3E50;
+            color: white;
+        }
+
+        .table th {
+            padding: 15px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+    .action-links a {
+        color: #E67E22;
+        text-decoration: none;
+        margin: 0 5px;
+        transition: color 0.3s ease;
+    }
+
+        .action-links a:hover {
+            color: #D35400;
+            text-decoration: underline;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #7f8c8d;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-active {
+        background-color: #27AE60;
+        color: white;
+    }
+
+    .badge-inactive {
+        background-color: #95a5a6;
+        color: white;
+    }
+</style>
+
+<div class="page-header">
+    <h1>Clients</h1>
+    <a asp-action="Create" class="btn-create">+ Create New Client</a>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Company Name</th>
+                <th>Contact Person</th>
+                <th>Email Address</th>
+                <th>Region</th>
+                <th style="width: 150px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@Html.DisplayFor(modelItem => item.companyName)</strong>
+                    </td>
+                    <td>@Html.DisplayFor(modelItem => item.clientName)</td>
+                    <td>
+                        <a href="mailto:@item.clientEmail" style="color: #E67E22; text-decoration: none;">
+                            @Html.DisplayFor(modelItem => item.clientEmail)
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-active">@Html.DisplayFor(modelItem => item.clientRegion)</span>
+                    </td>
+                    <td class="action-links">
+                        <a asp-action="Edit" asp-route-id="@item.clientID">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.clientID">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.clientID" style="color: #e74c3c;">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <p>No clients found. Click "Create New Client" to add your first client.</p>
+        </div>
+    }
+</div>

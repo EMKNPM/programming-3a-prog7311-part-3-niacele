@@ -1,0 +1,318 @@
+@model IEnumerable<Global_Logistics_Management_System___ST10439898.Models.Contract>
+
+@{
+    ViewData["Title"] = "Contracts";
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #E67E22;
+    }
+
+        .page-header h1 {
+            font-size: 2rem;
+            margin: 0;
+            color: #2C3E50;
+        }
+
+    .btn-create {
+        background-color: #27AE60;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+        display: inline-block;
+    }
+
+        .btn-create:hover {
+            background-color: #219A52;
+            color: white;
+        }
+
+    .filter-card {
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .filter-header {
+        background-color: #2C3E50;
+        color: white;
+        padding: 12px 20px;
+    }
+
+        .filter-header h5 {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+    .filter-body {
+        padding: 20px;
+    }
+
+    .filter-label {
+        font-weight: 600;
+        color: #2C3E50;
+        margin-bottom: 8px;
+        display: block;
+        font-size: 0.9rem;
+    }
+
+    .filter-control {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 8px 12px;
+        transition: all 0.3s ease;
+    }
+
+        .filter-control:focus {
+            border-color: #E67E22;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+        }
+
+    .btn-search {
+        background-color: #E67E22;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-search:hover {
+            background-color: #D35400;
+        }
+
+    .btn-clear {
+        background-color: #95a5a6;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-clear:hover {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+    .table-container {
+        background: white;
+        border-radius: 10px;
+        overflow-x: auto;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+    }
+
+        .table thead {
+            background-color: #2C3E50;
+            color: white;
+        }
+
+        .table th {
+            padding: 15px;
+            font-weight: 600;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-draft {
+        background-color: #95a5a6;
+        color: white;
+    }
+
+    .status-active {
+        background-color: #27AE60;
+        color: white;
+    }
+
+    .status-onhold {
+        background-color: #E67E22;
+        color: white;
+    }
+
+    .status-expired {
+        background-color: #c0392b;
+        color: white;
+    }
+
+    .btn-download {
+        background-color: #2C3E50;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 0.8rem;
+        transition: background-color 0.3s ease;
+        display: inline-block;
+    }
+
+        .btn-download:hover {
+            background-color: #34495E;
+            color: white;
+        }
+
+    .action-links a {
+        color: #E67E22;
+        text-decoration: none;
+        margin: 0 5px;
+        transition: color 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+        .action-links a:hover {
+            color: #D35400;
+            text-decoration: underline;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #7f8c8d;
+    }
+</style>
+
+<div class="page-header">
+    <h1>Contracts</h1>
+    <a asp-action="Create" class="btn-create">+ Create New Contract</a>
+</div>
+
+<div class="filter-card">
+    <div class="filter-header">
+        <h5>🔍 Filter Contracts</h5>
+    </div>
+    <div class="filter-body">
+        <form method="get" asp-action="Index">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="filter-label">Start Date From:</label>
+                        <input type="date" name="startDateFrom" class="filter-control" value="@ViewBag.StartDateFrom" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="filter-label">Start Date To:</label>
+                        <input type="date" name="startDateTo" class="filter-control" value="@ViewBag.StartDateTo" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="filter-label">Contract Status:</label>
+                        <select name="status" class="filter-control">
+                            <option value="">-- All Statuses --</option>
+                            <option value="Draft" selected="@(ViewBag.Status == "Draft")">Draft</option>
+                            <option value="Active" selected="@(ViewBag.Status == "Active")">Active</option>
+                            <option value="OnHold" selected="@(ViewBag.Status == "OnHold")">On Hold</option>
+                            <option value="Expired" selected="@(ViewBag.Status == "Expired")">Expired</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button type="submit" class="btn-search">Search</button>
+                    <a asp-action="Index" class="btn-clear">Clear Filters</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+                <th>Service Level</th>
+                <th>Agreement</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <strong>@Html.DisplayFor(modelItem => item.Client.companyName)</strong>
+                        <br />
+                        <small class="text-muted">@Html.DisplayFor(modelItem => item.Client.clientName)</small>
+                    </td>
+                    <td>@item.startDate.ToString("yyyy-MM-dd")</td>
+                    <td>@item.endDate.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        @{
+                            string statusClass = item.contractStatus.ToString().ToLower();
+                        }
+                        <span class="status-badge status-@statusClass">
+                            @Html.DisplayFor(modelItem => item.contractStatus)
+                        </span>
+                    </td>
+                    <td>@Html.DisplayFor(modelItem => item.serviceLevel)</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.signedAgreementPath))
+                        {
+                            <a href="@item.signedAgreementPath" class="btn-download" download>📄 Download</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No file</span>
+                        }
+                    </td>
+                    <td class="action-links">
+                        <a asp-action="Edit" asp-route-id="@item.contractID">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.contractID">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.contractID" style="color: #e74c3c;">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <p>📋 No contracts found. Click "Create New Contract" to add your first contract.</p>
+        </div>
+    }
+</div>

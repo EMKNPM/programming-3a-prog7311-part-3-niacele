@@ -1,0 +1,191 @@
+@model Global_Logistics_Management_System___ST10439898.Models.Contract
+
+@{
+    ViewData["Title"] = "Create Contract";
+}
+
+<style>
+    .form-container {
+        max-width: 700px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-header {
+        background-color: #2C3E50;
+        color: white;
+        padding: 20px 30px;
+    }
+
+        .form-header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .form-header p {
+            font-size: 0.9rem;
+            margin: 5px 0 0 0;
+            opacity: 0.8;
+        }
+
+    .form-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .control-label {
+        font-weight: 600;
+        color: #2C3E50;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control:focus {
+            border-color: #E67E22;
+            box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+            outline: none;
+        }
+
+    select.form-control {
+        cursor: pointer;
+        background-color: white;
+    }
+
+    .text-danger {
+        font-size: 0.85rem;
+        margin-top: 5px;
+        display: block;
+        color: #e74c3c;
+    }
+
+    .text-muted {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #ecf0f1;
+    }
+
+    .btn-submit {
+        background-color: #27AE60;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-submit:hover {
+            background-color: #219A52;
+        }
+
+    .btn-back {
+        background-color: #95a5a6;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-back:hover {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+    .file-input {
+        padding: 8px;
+        background-color: #f8f9fa;
+    }
+
+    .required-field::after {
+        content: " *";
+        color: #e74c3c;
+    }
+
+    hr {
+        display: none;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <h1>Create Contract</h1>
+        <p>Add a new contract to the system</p>
+    </div>
+
+    <div class="form-body">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group">
+                <label asp-for="clientID" class="control-label required-field">Client</label>
+                <select asp-for="clientID" class="form-control" asp-items="ViewBag.clientID">
+                    <option value="">-- Select Client --</option>
+                </select>
+                <span asp-validation-for="clientID" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="startDate" class="control-label required-field">Start Date</label>
+                <input asp-for="startDate" class="form-control" type="date" />
+                <span asp-validation-for="startDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="endDate" class="control-label required-field">End Date</label>
+                <input asp-for="endDate" class="form-control" type="date" />
+                <span asp-validation-for="endDate" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="serviceLevel" class="control-label required-field">Service Level</label>
+                <input asp-for="serviceLevel" class="form-control" placeholder="e.g., Premium, Standard, Basic" />
+                <span asp-validation-for="serviceLevel" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label required-field">Signed Agreement (PDF)</label>
+                <input type="file" name="pdfUpload" class="form-control file-input" accept=".pdf" required />
+                <span class="text-muted">Only PDF files are accepted. Maximum file size: 10MB</span>
+            </div>
+
+            <div class="form-actions">
+                <input type="submit" value="Create Contract" class="btn-submit" />
+                <a asp-action="Index" class="btn-back">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

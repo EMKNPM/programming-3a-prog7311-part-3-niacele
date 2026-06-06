@@ -1,0 +1,200 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style>
+    :root {
+        --dark-grey: #2C3E50;
+        --burnt-orange: #E67E22;
+        --green: #27AE60;
+        --white: #FFFFFF;
+        --light-grey: #34495E;
+    }
+
+    .banner {
+        background-color: var(--dark-grey);
+        color: var(--white);
+        padding: 30px 0;
+        text-align: center;
+        margin-bottom: 0;
+    }
+
+        .banner h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 0;
+            color: var(--white);
+        }
+
+        .banner p {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: var(--white);
+        }
+
+    .carousel-container {
+        position: relative;
+        height: 500px;
+        overflow: hidden;
+    }
+
+    .carousel-image {
+        height: 500px;
+        width: 100%;
+        object-fit: cover;
+        filter: brightness(0.5);
+    }
+
+    .cards-container {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        transform: translateY(-50%);
+        z-index: 20;
+        padding: 0 20px;
+    }
+
+    .custom-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        padding: 25px;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        height: 100%;
+        border: none;
+    }
+
+        .custom-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .custom-card h3 {
+            color: var(--dark-grey);
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .custom-card p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+    .btn-custom {
+        background-color: var(--burnt-orange);
+        color: var(--white);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-custom:hover {
+            background-color: #D35400;
+            color: var(--white);
+        }
+
+    .footer-custom {
+        background-color: var(--dark-grey);
+        color: var(--white);
+        padding: 20px 0;
+        margin-top: 50px;
+    }
+
+        .footer-custom a {
+            color: var(--burnt-orange);
+            text-decoration: none;
+        }
+
+            .footer-custom a:hover {
+                color: var(--green);
+            }
+
+    .card-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+
+    .icon-contracts {
+        color: var(--burnt-orange);
+    }
+
+    .icon-requests {
+        color: var(--green);
+    }
+
+    .icon-clients {
+        color: var(--dark-grey);
+    }
+</style>
+
+<div class="banner">
+    <h1>TechMove</h1>
+    <p>Global Logistics Management System</p>
+</div>
+
+<div class="carousel-container">
+    <div id="demoCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="~/img/image1.jpg" class="d-block w-100 carousel-image" alt="Logistics Image 1">
+            </div>
+            <div class="carousel-item">
+                <img src="~/img/image2.jpg" class="d-block w-100 carousel-image" alt="Logistics Image 2">
+            </div>
+            <div class="carousel-item">
+                <img src="~/img/image3.jpg" class="d-block w-100 carousel-image" alt="Logistics Image 3">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#demoCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#demoCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+
+    <div class="cards-container">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="custom-card">
+                        <div class="card-icon icon-contracts">📋</div>
+                        <h3>Contracts</h3>
+                        <p>Manage and track all your logistics contracts, view status, and handle renewals efficiently.</p>
+                        <a asp-controller="Contract" asp-action="Index" class="btn-custom">View Contracts →</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="custom-card">
+                        <div class="card-icon icon-requests">🚚</div>
+                        <h3>Service Requests</h3>
+                        <p>Create and monitor service requests, track costs, and manage deliveries in real-time.</p>
+                        <a asp-controller="ServiceRequest" asp-action="Index" class="btn-custom">View Requests →</a>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="custom-card">
+                        <div class="card-icon icon-clients">🏢</div>
+                        <h3>Clients</h3>
+                        <p>Manage client information, company details, and maintain strong business relationships.</p>
+                        <a asp-controller="Client" asp-action="Index" class="btn-custom">View Clients →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer-custom">
+    <div class="container text-center">
+        <p>&copy; 2026 TechMove - Global Logistics Management System</p>
+        <p>Delivering Excellence in Logistics</p>
+    </div>
+</footer>
