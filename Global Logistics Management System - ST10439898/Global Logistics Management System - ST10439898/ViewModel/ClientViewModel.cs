@@ -1,18 +1,18 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Global_Logistics_Management_System___ST10439898.API.Models
+namespace Global_Logistics_Management_System___ST10439898.ViewModels
 {
     public class ClientViewModel
     {
-        public int ClientID { get; set;  }
+        public int cientId { get; set;  }
         [Display(name = "Client Name")]
-        public string ClientName { get; set; }
+        public string clientName { get; set; }
         [Display(name = "Email Address")]
-        public string ClientEmail { get; set; }
+        public string clientEmail { get; set; }
         [Display(name = "Logistics Region Zone")]
-        public string ClientRegion { get; set; }
+        public string clientRegion { get; set; }
         [Display(name = "Company Name")]
-        public string CompanyName { get; set; }
+        public string companyName { get; set; }
 
         //no relationship attributes because this is handled in the API
 

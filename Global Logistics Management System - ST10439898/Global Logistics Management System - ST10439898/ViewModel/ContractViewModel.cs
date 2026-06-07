@@ -2,31 +2,31 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace GLMS.API.Models
+namespace Global_Logistics_Management_System___ST10439898.ViewModels
 {
     public class ContractViewModel
     {
-        public int ContractID { get; set; }
+        public int contractID { get; set; }
         [Display(Name = "Target Client")]
-        public int ClientID { get; set; }
+        public int clientID { get; set; }
         [Display(Name = "Start Date")]
-        public DateTime StartDate { get; set; }
+        public DateTime startDate { get; set; }
         [Display(Name = "End Date")]
-        public DateTime EndDate { get; set; }
+        public DateTime endDate { get; set; }
         [Display(Name = "Contract Status")]
-        public string ContractStatus { get; set; }
+        public string contractStatus { get; set; }
         [Display(Name = "Service Level Tier")]
-        public string ServiceLevel { get; set; }
+        public string serviceLevel { get; set; }
         [Display(Name = "Signed Document Path Location")]
-        public string? SignedAgreementPath { get; set; }
+        public string? signedAgreementPath { get; set; }
         [Display(Name = "Last Modified Timestamp")]
-        public DateTime? LastModified { get; set; }
+        public DateTime? lastModified { get; set; }
 
         [Display(Name = "Upload Signed Contract Agreement (PDF Only)")]
-        public IFormFile? PdfUpload { get; set; }
+        public IFormFile? pdfUpload { get; set; }
 
         [Display(Name = "Associated Client/Company Name")]
-        public string? ClientCompanyName { get; set; }
+        public string? clientCompanyName { get; set; }
 
         //no relationship or design pattern methods because the API manages those
 
