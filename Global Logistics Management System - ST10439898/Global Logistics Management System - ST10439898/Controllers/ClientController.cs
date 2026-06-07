@@ -2,39 +2,37 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Global_Logistics_Management_System___ST10439898.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Global_Logistics_Management_System___ST10439898.Data;
-using Global_Logistics_Management_System___ST10439898.Models;
+
 
 namespace Global_Logistics_Management_System___ST10439898.Controllers
 {
     public class ClientController : Controller
     {
-        private readonly GLMSContext _context;
+        private readonly ClientApiService _apiService;
 
-        public ClientController(GLMSContext context)
+        public ClientController( ClientApiService apiService)
         {
-            _context = context;
+            _apiService = apiService;
         }
 
         // GET: Client
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Clients.ToListAsync());
+            //pulls client list through API service
+            var clients = await _apiService.GetClientAsync();
+
+            return ViewModels(clients);
         }
 
         // GET: Client/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var client = await _apiService.GetClientByIdAsync(id);
 
-            var client = await _context.Clients
-                .FirstOrDefaultAsync(m => m.clientID == id);
             if (client == null)
             {
                 return NotFound();
@@ -54,7 +52,7 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("clientName,clientEmail,companyName,clientRegion")] Client client) //removed client ID because its auto generates
+        public async Task<IActionResult> Create(Client client) //no more Bind because ViewModel validates the incoming data
         {
             if(!ModelState.IsValid)
     {
@@ -67,20 +65,23 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
                 return View(client);
             }
 
-            _context.Add(client);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            //create client through API service
+            var response = await _apiService.CreateClientAsync(client);
+
+            if(response.IsSuccessStatusCode)
+            {
+                //returns this only if client creation was successful
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddModelError("", "API Error: Client account profile could not be saved.");
+            return ViewModels(client);
         }
 
         // GET: Client/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var client = await _context.Clients.FindAsync(id);
+            var client = await _apiService.GetClientByIdAsync(id);
             if (client == null)
             {
                 return NotFound();
@@ -93,46 +94,37 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("clientID,clientName,clientEmail,companyName,clientRegion")] Client client)
+        public async Task<IActionResult> Edit(int id, Client client) //no more Bind because ViewModel validates incoming data
         {
             if (id != client.clientID)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(client);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ClientExists(client.clientID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                return View(client);
+            }
+
+            //changes get set to API service
+            var response = await _apiService.UpdateClientAsync(id, client);
+
+            if(response.IsSuccessStatusCode)
+            {
                 return RedirectToAction(nameof(Index));
             }
+
+            //error message if saving changes is unsuccessfull
+            ModelState.AddModelError("", "API Error: Failed to save client modifications.");
             return View(client);
         }
 
         // GET: Client/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            //fetching client from database in API
+            var client = await _apiService.GetClientByIdAsyc(id);
 
-            var client = await _context.Clients
-                .FirstOrDefaultAsync(m => m.clientID == id);
             if (client == null)
             {
                 return NotFound();
@@ -146,19 +138,15 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var client = await _context.Clients.FindAsync(id);
-            if (client != null)
+            var response = await _apiService.DeleteClientAsync(id);
+
+            if (response.IsSuccessStatusCode)
             {
-                _context.Clients.Remove(client);
+                return RedirectToAction(nameof(Index));
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Delete), new {id = id, error = "Could not delete client."});
         }
 
-        private bool ClientExists(int id)
-        {
-            return _context.Clients.Any(e => e.clientID == id);
-        }
     }
 }
