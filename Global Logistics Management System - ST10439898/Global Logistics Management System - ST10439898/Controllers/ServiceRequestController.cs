@@ -1,6 +1,5 @@
-using Global_Logistics_Management_System___ST10439898.Data;
-using Global_Logistics_Management_System___ST10439898.Models;
-using Global_Logistics_Management_System___ST10439898.Services.Behavioural;
+using Global_Logistics_Management_System___ST10439898.ViewModels;
+using Global_Logistics_Management_System___ST10439898.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -14,56 +13,47 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
 {
     public class ServiceRequestController : Controller
     {
-        private readonly GLMSContext _context;
-        private readonly ServiceRequestManager _manager;
+        private readonly ServiceRequestApiService _servicerRequestApiService;
+        private readonly ContractApiService _contractApService;
 
-        public ServiceRequestController(GLMSContext context, ServiceRequestManager manager)
+        public ServiceRequestController(ServiceRequestApiService serviceRequestApiService, ContractApiService contractApiService)
         {
-            _context = context;
-            _manager = manager;
+            _servicerRequestApiService = serviceRequestApiService;
+            _contractApService = contractApiService;
         }
+        
 
         // GET: ServiceRequest
         public async Task<IActionResult> Index()
         {
-            var gLMSContext = _context.ServiceRequests.Include(s => s.Contract).ThenInclude(c => c.Client);
-            return View(await gLMSContext.ToListAsync());
+            var requests = await _servicerRequestApiService.GetServiceRequestsAsync();
+            return View(requests);
         }
 
         // GET: ServiceRequest/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var serviceRequest = await _context.ServiceRequests
-                .Include(s => s.Contract)
-                .FirstOrDefaultAsync(m => m.requestID == id);
+            var serviceRequest = await _servicerRequestApiService.GetServiceRequestByIdAsync(id);
             if (serviceRequest == null)
             {
                 return NotFound();
             }
-
             return View(serviceRequest);
         }
 
         // GET: ServiceRequest/Create
         public IActionResult Create()
         {
-            //only shows active contracts - prevents service requests from being created for contracts that arent active
-            var contracts = _context.Contracts
-                .Include(c => c.Client)
-                .Where(c => c.contractStatus == Contract.Status.Active)
-                .Select(c => new {
-                    c.contractID,
-                    DisplayText = $"Contract #{c.contractID} - {c.Client.companyName} ({c.contractStatus})"
-                })
-                .ToList();
+            //fetch only the contracts with active status to populate drop down
+            var contracts = await _servicerRequestApiService.GetContractsAsync(null, null, "Active");
 
-            ViewData["contractID"] = new SelectList(contracts, "contractID", "DisplayText");
-            return View();
+            var dropdownData = contracts.Select(c => new {
+                c.contractID,
+                DisplayText = $"Contract #{c.contractID} - {c.clientCompanyName} ({c.contractStatus})"
+            }).ToList();
+
+            ViewData["contractID"] = new SelectList(dropdownData, "contractID", "displayText");
+            return View(new ServiceRequestViewModel());
         }
 
         // POST: ServiceRequest/Create
@@ -72,69 +62,37 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("contractID, Description, OriginalCost")] ServiceRequest serviceRequest)
+        public async Task<IActionResult> Create(ServiceRequestViewModel serviceRequest)
         {
-            //fetch parent contract from database
-            var parentContract = await _context.Contracts.FindAsync(serviceRequest.contractID);
-
-            if (parentContract == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound("The specified parent contract could not be found.");
-            }
-
-            parentContract.SyncStateFromStatus();
-
-            try
-            {
-                //checks state -> triggers currency conversion
-                await _manager.CreateServiceRequestAsync(parentContract, serviceRequest);
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch (InvalidOperationException ex)
-            {
-                ModelState.AddModelError("", ex.Message);
-
-                var contracts = _context.Contracts
-                    .Include(c => c.Client)
-                    .Where(c => c.contractStatus == Contract.Status.Active)
-                    .Select(c => new {
-                        c.contractID,
-                        DisplayText = $"Contract #{c.contractID} - {c.Client.clientName} ({c.contractStatus})"
-                    })
-                    .ToList();
-
-                ViewData["contractID"] = new SelectList(contracts, "contractID", "DisplayText", serviceRequest.contractID);
+                await PopulateContractsDropdownAsync(serviceRequest.contractID);
                 return View(serviceRequest);
             }
+
+            var response = await _servicerRequestApiService.CreateServiceRequestAsync(serviceRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            await PopulateContractsDropdownAsync(serviceRequest.contractID);
+            return View(serviceRequest);
         }
+        
 
         // GET: ServiceRequest/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var serviceRequest = await _context.ServiceRequests.FindAsync(id);
+            var serviceRequest = await _servicerRequestApiService.GetServiceRequestByIdAsync(id);
             if (serviceRequest == null)
             {
                 return NotFound();
             }
 
-            var contracts = _context.Contracts
-                .Include(c => c.Client)
-                .Select(c => new {
-                    c.contractID,
-                    DisplayText = $"Contract #{c.contractID} - {c.Client.clientName} ({c.contractStatus})"
-                })
-                .ToList();
-
-            ViewData["contractID"] = new SelectList(contracts, "contractID", "DisplayText", serviceRequest.contractID);
-
-            ViewBag.OriginalCost = serviceRequest.OriginalCost;
-
+            await PopulateAllContractsDropdownAsync(serviceRequest.contractID);
+            ViewBag.originalCost = serviceRequest.originalCost;
             return View(serviceRequest);
         }
 
@@ -143,110 +101,53 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("requestID,contractID,Description,requestStatus")] ServiceRequest serviceRequest)
+        public async Task<IActionResult> Edit(int id,  ServiceRequestViewModel serviceRequest)
         {
-            if (id != serviceRequest.requestID)
+
+            if (id != serviceRequest.RequestID)
             {
                 return NotFound();
             }
 
-            //fields arent being bound so they are removed
-            ModelState.Remove("Contract");
-            ModelState.Remove("OriginalCost");
-            ModelState.Remove("CostinZAR");
-
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    //retrieve existing requests
-                    var existingRequest = await _context.ServiceRequests.FindAsync(id);
-                    if (existingRequest == null)
-                    {
-                        return NotFound();
-                    }
-
-                    //update fields
-                    existingRequest.contractID = serviceRequest.contractID;
-                    existingRequest.Description = serviceRequest.Description;
-                    existingRequest.requestStatus = serviceRequest.requestStatus;
-
-                    _context.Update(existingRequest);
-                    await _context.SaveChangesAsync();
-
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ServiceRequestExists(serviceRequest.requestID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await PopulateAllContractsDropdownAsync(serviceRequest.contractID);
+                return View(serviceRequest);
             }
 
-            var contracts = _context.Contracts
-                .Include(c => c.Client)
-                .Select(c => new {
-                    c.contractID,
-                    DisplayText = $"Contract #{c.contractID} - {c.Client.clientName} ({c.contractStatus})"
-                })
-                .ToList();
+            var response = await _servicerRequestApiService.UpdateServiceRequestAsync(id, serviceRequest);
 
-            ViewData["contractID"] = new SelectList(contracts, "contractID", "DisplayText", serviceRequest.contractID);
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            //display error message if this fails
+            ModelState.AddModelError("", "API Error: Failed to save modifications.");
+            await PopulateAllContractsDropdownAsync(serviceRequest.contractID);
             return View(serviceRequest);
         }
-        private async Task<decimal> ConvertCurrencyAmount(decimal amount, string fromCurrency)
+
+        //this is for the currency conversion and makes it so that the user wont have to press calculate in order to see the converted price
+        [HttpGet]
+        public async Task<IActionResult> ConvertCurrency(decimal amount, string fromCurrency)
         {
-            try
+            var result = await _servicerRequestApiService.ConvertCurrencyAsync(amount, fromCurrency);
+            if (result != null && result.Success)
             {
-                string apiURL = $"https://v6.exchangerate-api.com/v6/ea39e0973f82c7a1cf494324/latest/{fromCurrency}";
-
-                using var httpClient = new HttpClient();
-                var response = await httpClient.GetAsync(apiURL);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonString = await response.Content.ReadAsStringAsync();
-                    using JsonDocument doc = JsonDocument.Parse(jsonString);
-                    JsonElement root = doc.RootElement;
-
-                    if (root.GetProperty("result").GetString() == "success")
-                    {
-                        JsonElement rates = root.GetProperty("conversion_rates");
-                        decimal zarRate = rates.GetProperty("ZAR").GetDecimal();
-                        return amount * zarRate;
-                    }
-                }
-
-                return amount;
+                return Json(new { success = true, zarAmount = result.ZarAmount });
             }
-            catch
-            {
-                return amount; 
-            }
+            return Json(new { success = false, message = "Dynamic currency computation failed via backend." });
         }
 
         // GET: ServiceRequest/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var serviceRequest = await _context.ServiceRequests
-                .Include(s => s.Contract)
-                .FirstOrDefaultAsync(m => m.requestID == id);
+            var serviceRequest = await _servicerRequestApiService.GetServiceRequestByIdAsync(id);
             if (serviceRequest == null)
             {
                 return NotFound();
             }
-
             return View(serviceRequest);
         }
 
@@ -255,14 +156,12 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var serviceRequest = await _context.ServiceRequests.FindAsync(id);
-            if (serviceRequest != null)
+            var response = await _requestApiService.DeleteServiceRequestAsync(id);
+            if (response.IsSuccessStatusCode)
             {
-                _context.ServiceRequests.Remove(serviceRequest);
+                return RedirectToAction(nameof(Index));
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Delete), new { id = id, error = "Delete request rejected." });
         }
 
         // GET: ServiceRequest/ConvertCurrency
@@ -300,9 +199,26 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
             }
         }
 
-        private bool ServiceRequestExists(int id)
+        //helper methods that pupulate the dropdown for the contract during creation and editing a service request
+        private async Task PopulateContractsDropdownAsync(int selectedId)
         {
-            return _context.ServiceRequests.Any(e => e.requestID == id);
+            var contracts = await _contractApiService.GetContractsAsync(null, null, "Active");
+            var dropdownData = contracts.Select(c => new {
+                c.contractID,
+                DisplayText = $"Contract #{c.contractID} - {c.clientCompanyName} ({c.contractStatus})"
+            }).ToList();
+            ViewData["contractID"] = new SelectList(dropdownData, "contractID", "displayText", selectedId);
         }
+
+        private async Task PopulateAllContractsDropdownAsync(int selectedId)
+        {
+            var contracts = await _contractApiService.GetContractsAsync(null, null, null);
+            var dropdownData = contracts.Select(c => new {
+                c.contractID,
+                DisplayText = $"Contract #{c.contractID} - {c.clientCompanyName} ({c.contractStatus})"
+            }).ToList();
+            ViewData["contractID"] = new SelectList(dropdownData, "contractID", "dsplayText", selectedId);
+        }
+
     }
 }
