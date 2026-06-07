@@ -1,7 +1,5 @@
-using Global_Logistics_Management_System___ST10439898.Data;
-using Global_Logistics_Management_System___ST10439898.Models;
-using Global_Logistics_Management_System___ST10439898.Services.Behavioural;
-using Global_Logistics_Management_System___ST10439898.Services.Creational;
+using Global_Logistics_Management_System___ST10439898.Services;
+using Global_Logistics_Management_System___ST10439898.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -14,67 +12,37 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
 {
     public class ContractController : Controller
     {
-        private readonly GLMSContext _context;
-        private readonly IContractFactory _contractFactory;
-        private readonly IWebHostEnvironment _environment;
+        private readonly ContractApiService _contractApiService;
+        private readonly ClientApiService _clientApiService;
 
-        public ContractController(GLMSContext context, IContractFactory contractFactory, IWebHostEnvironment environment)
+        public ContractController(ContractApiService contractApiService, ClientApiService  clientApiService)
         {
-            _context = context;
-            _contractFactory = contractFactory;
-            _environment = environment;
+            _contractApiService = contractApiService;
+            _clientApiService = clientApiService;
         }
 
         // GET: Contract
         public async Task<IActionResult> Index(DateTime? startDateFrom, DateTime? startDateTo, string status)
         {
-            // Store filter values in ViewBag to persist in the form
-            ViewBag.StartDateFrom = startDateFrom?.ToString("yyyy-MM-dd");
-            ViewBag.StartDateTo = startDateTo?.ToString("yyyy-MM-dd");
+            //converts datetime into string so the API can digest it
+            string ? fromStr = startDateFrom?.ToString("yyyy-MM-dd");
+            string? toStr = startDateTo?.ToString("yyyy-MM-dd");
+
+            ViewBag.StartDateFrom = fromStr;
+            ViewBag.StartDateTo = toStr;
             ViewBag.Status = status;
 
-            //fetches the contracts
-            var contracts = _context.Contracts
-                .Include(c => c.Client)
-                .AsQueryable();
+            //fetch data from API 
+            var contracts = await _contractApiService.GetContractsAsync(fromStr, toStr, status);
 
-            //search functionality
-            if (startDateFrom.HasValue)
-            {
-                contracts = contracts.Where(c => c.startDate >= startDateFrom.Value);
-            }
-
-            if (startDateTo.HasValue)
-            {
-                contracts = contracts.Where(c => c.startDate <= startDateTo.Value);
-            }
-
-            if (!string.IsNullOrEmpty(status))
-            {
-                //string to enum
-                if (Enum.TryParse<Models.Contract.Status>(status, out var statusEnum))
-                {
-                    contracts = contracts.Where(c => c.contractStatus == statusEnum);
-                }
-            }
-
-            //results of search
-            var result = await contracts.ToListAsync();
-
-            return View(result);
+            return View(contracts);
         }
 
         // GET: Contract/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var contract = await _contractApiService.DeleteContractAsync(id);
 
-            var contract = await _context.Contracts
-                .Include(c => c.Client)
-                .FirstOrDefaultAsync(m => m.contractID == id);
             if (contract == null)
             {
                 return NotFound();
@@ -84,10 +52,12 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         }
 
         // GET: Contract/Create
-        public IActionResult Create()
+        public async IActionResult Create()
         {
+            //pull clients to populate drop down
+            var clients = await _clientApiService.GetClientAsync();
             ViewData["clientID"] = new SelectList(_context.Clients, "clientID", "clientName");
-            return View();
+            return View(new ContractViewModel());
         }
 
         // POST: Contract/Create
@@ -95,68 +65,38 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(int clientID, string serviceLevel, IFormFile pdfUpload)
+        public async Task<IActionResult> Create(ContractViewModel contract)
         {
-            //fetches the client ID from the database - no client = no contract
-            var client = await _context.Clients.FindAsync(clientID);
-            if (client == null)
-            {
-                return NotFound("Client not found.");
-            }
-
-            //calls factory method to create new contract - automatically sets start and end date and sets contract status as draft
-            Models.Contract newContract = _contractFactory.CreateContract(client);
-
-            newContract.serviceLevel = serviceLevel;
-
-            //file upload
-            if (pdfUpload != null && pdfUpload.Length > 0)
-            {
-                //ensures that file is a pdf and not some other file type
-                if (Path.GetExtension(pdfUpload.FileName).ToLower() != ".pdf")
-                {
-                    ModelState.AddModelError("", "Action Denied: Only PDF files are allowed for contracts.");
-                    ViewData["clientID"] = new SelectList(_context.Clients, "clientID", "clientName", clientID);
-                    return View();
-                }
-
-                //creates directory for file upload
-                string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-                Directory.CreateDirectory(uploadsFolder);
-
-                //GUID creates unique file name for upload
-                string uniqueFileName = Guid.NewGuid().ToString() + ".pdf";
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                //file path sent to folder
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await pdfUpload.CopyToAsync(fileStream);
-                }
-
-                //URL saved
-                newContract.signedAgreementPath = "/uploads/" + uniqueFileName;
-            }
-            else
+            //verify that the contract is a pdf
+            if (model.PdfUpload == null || model.PdfUpload.Length == 0)
             {
                 ModelState.AddModelError("", "A signed PDF agreement is required.");
-                ViewData["clientID"] = new SelectList(_context.Clients, "clientID", "clientName", clientID);
-                return View();
+            }
+            else if (Path.GetExtension(model.PdfUpload.FileName).ToLower() != ".pdf")
+            {
+                ModelState.AddModelError("", "Action Denied: Only PDF files are allowed for contracts.");
             }
 
-            newContract.LastModified = DateTime.Now;
+            if (!ModelState.IsValid)
+            {
+                var clients = await _clientApiService.GetClientsAsync();
+                ViewData["clientID"] = new SelectList(clients, "clientID", "clientName", contract.clientID);
+                return View(contract);
+            }
 
-            //completed contract saved to database
-            _context.Contracts.Add(newContract);
-            await _context.SaveChangesAsync();
+            var response = await _contractApiService.CreateContractAsync(contract);
 
-            return RedirectToAction(nameof(Index));
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            ModelState.AddModelError("", "API Error: The backend data repository rejected the contract creation.");
+            var finalClients = await _clientApiService.GetClientsAsync();
+            ViewData["clientID"] = new SelectList(finalClients, "clientID", "clientName", contract.clientID);
+            return View(contract);
         }
-
-
-
-
-
+         
         // GET: Contract/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -180,116 +120,46 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("contractID,clientID,startDate,endDate,contractStatus,serviceLevel")] Models.Contract contract, IFormFile pdfUpload, string existingFilePath)
+        public async Task<IActionResult> Edit(int id, ContractViewModel contract)
         {
             if (id != contract.contractID)
             {
                 return NotFound();
             }
 
-            //these navigation properties intefere with the saving of the edited contract - removed because the database doesnt lose anything
-            ModelState.Remove("Client");
-            ModelState.Remove("ServiceRequests");
-            ModelState.Remove("pdfUpload");
-            ModelState.Remove("signedAgreementPath");
+            if (contract.PdfUpload != null && Path.GetExtension(model.PdfUpload.FileName).ToLower() != ".pdf")
+            {
+                ModelState.AddModelError("", "Only PDF files are allowed.");
+            }
 
-            //logging/debugging
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors);
-                foreach (var error in errors)
-                {
-                    Console.WriteLine($"Validation error: {error.ErrorMessage}");
-                }
-                ViewData["clientID"] = new SelectList(_context.Clients, "clientID", "clientName", contract.clientID);
+                var clients = await _clientApiService.GetClientsAsync();
+                ViewData["clientID"] = new SelectList(clients, "clientID", "clientName", contract.clientID);
                 return View(contract);
             }
 
-            try
+            var response = await _contractApiService.UpdateContractAsync(id, contract);
+
+            if (response.IsSuccessStatusCode)
             {
-                //fetch existing contract
-                var existingContract = await _context.Contracts.FindAsync(id);
-                if (existingContract == null)
-                {
-                    return NotFound();
-                }
-
-                //update the properties
-                existingContract.clientID = contract.clientID;
-                existingContract.startDate = contract.startDate;
-                existingContract.endDate = contract.endDate;
-                existingContract.contractStatus = contract.contractStatus;
-                existingContract.serviceLevel = contract.serviceLevel;
-                existingContract.LastModified = DateTime.Now;
-
-                //file upload
-                if (pdfUpload != null && pdfUpload.Length > 0)
-                {
-                    if (Path.GetExtension(pdfUpload.FileName).ToLower() != ".pdf")
-                    {
-                        ModelState.AddModelError("", "Only PDF files are allowed.");
-                        ViewData["clientID"] = new SelectList(_context.Clients, "clientID", "clientName", contract.clientID);
-                        return View(contract);
-                    }
-
-                    //delete the old file
-                    if (!string.IsNullOrEmpty(existingContract.signedAgreementPath))
-                    {
-                        var oldFilePath = Path.Combine(_environment.WebRootPath, existingContract.signedAgreementPath.TrimStart('/'));
-                        if (System.IO.File.Exists(oldFilePath))
-                        {
-                            System.IO.File.Delete(oldFilePath);
-                        }
-                    }
-
-                    //save new contract
-                    string uploadsFolder = Path.Combine(_environment.WebRootPath, "uploads");
-                    Directory.CreateDirectory(uploadsFolder);
-                    string uniqueFileName = Guid.NewGuid().ToString() + ".pdf";
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await pdfUpload.CopyToAsync(fileStream);
-                    }
-
-                    existingContract.signedAgreementPath = "/uploads/" + uniqueFileName;
-                }
-
-                _context.Update(existingContract);
-                await _context.SaveChangesAsync();
-
                 return RedirectToAction(nameof(Index));
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ContractExists(contract.contractID))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+
+            ModelState.AddModelError("", "API Error: Failed to commit contract revisions to the database.");
+            var finalClients = await _clientApiService.GetClientsAsync();
+            ViewData["clientID"] = new SelectList(finalClients, "clientID", "clientName", contract.clientID);
+            return View(contract);
         }
 
         // GET: Contract/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var contract = await _context.Contracts
-                .Include(c => c.Client)
-                .FirstOrDefaultAsync(m => m.contractID == id);
+            var contract = await _contractApiService.GetContractByIdAsync(id);
             if (contract == null)
             {
                 return NotFound();
             }
-
             return View(contract);
         }
 
@@ -298,19 +168,13 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var contract = await _context.Contracts.FindAsync(id);
-            if (contract != null)
+            var response = await _contractApiService.DeleteContractAsync(id);
+            if (response.IsSuccessStatusCode)
             {
-                _context.Contracts.Remove(contract);
+                return RedirectToAction(nameof(Index));
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Delete), new { id = id, error = "Deletion command rejected by backend." });
         }
 
-        private bool ContractExists(int id)
-        {
-            return _context.Contracts.Any(e => e.contractID == id);
-        }
     }
 }
