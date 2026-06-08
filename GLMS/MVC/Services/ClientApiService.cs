@@ -16,7 +16,7 @@ namespace Global_Logistics_Management_System___ST10439898.Services
         // GET - all clients
         public async Task<List<ClientViewModel>> GetClientsAsync()
         {
-            // send a GET request to the API - matches [HttpGet] in ClientsController
+            // send a GET request to the API 
             var clients = await _httpclient.GetFromJsonAsync<List<ClientViewModel>>("api/Clients");
 
             return clients ?? new List<ClientViewModel>();

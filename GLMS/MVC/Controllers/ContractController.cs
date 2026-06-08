@@ -46,7 +46,7 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
                 return NotFound();
             }
 
-            // Changed from DeleteContractAsync to GetContractByIdAsync
+           
             var contract = await _contractApiService.GetContractByIdAsync(id.Value);
 
             if (contract == null)

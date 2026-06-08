@@ -84,7 +84,7 @@ namespace Global_Logistics_Management_System___ST10439898.Services
 
             using var content = new MultipartFormDataContent();
 
-            // First, get the existing contract to retrieve the current signedAgreementPath
+            // first, get the existing contract to retrieve the current signedAgreementPath
             var existingContract = await GetContractByIdAsync(id);
             var existingFilePath = existingContract?.signedAgreementPath ?? "";
 
@@ -105,7 +105,7 @@ namespace Global_Logistics_Management_System___ST10439898.Services
             content.Add(new StringContent(((int)model.contractStatus).ToString()), "contractStatus");
             content.Add(new StringContent(model.serviceLevel), "serviceLevel");
 
-            // Send the existing file path to satisfy validation
+            // send the existing file path to satisfy validation
             content.Add(new StringContent(existingFilePath), "signedAgreementPath");
 
             if (model.pdfUpload != null)

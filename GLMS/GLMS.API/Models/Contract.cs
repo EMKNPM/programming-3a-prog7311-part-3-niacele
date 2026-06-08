@@ -30,8 +30,7 @@ namespace GLMS.API.Models
         public virtual Client? Client { get; set; }
         public virtual ICollection<ServiceRequest>? ServiceRequests { get; set; }
 
-        /*Below is code that'll be used by the State Design Pattern's implementation*/
-
+      
         //current contract state
         [NotMapped]
         private IContractState? _currentState;

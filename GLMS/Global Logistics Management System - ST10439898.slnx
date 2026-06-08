@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="../GLMS.Test/GLMS.Test.csproj" Id="411e35f4-cec5-4762-a5ce-64bbe9353225" />
   <Project Path="docker-compose.dcproj">
     <Build />
   </Project>

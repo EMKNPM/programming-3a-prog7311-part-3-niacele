@@ -11,7 +11,7 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
 
         public AccountController(IHttpClientFactory httpClientFactory, ILogger<AccountController> logger)
         {
-            // Pulls the pre-configured client pointing to https://localhost:7048/
+            // pulls pre configured client
             _httpClient = httpClientFactory.CreateClient();
             _logger = logger;
         }

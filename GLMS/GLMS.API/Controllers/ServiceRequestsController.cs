@@ -53,7 +53,7 @@ namespace GLMS.API.Controllers
             if (serviceRequest == null)
             {
                 //return appropriate error message
-                return NotFound(new { message = $"Search failed: Service Request {id} does not exist." }); // HTTP 404
+                return NotFound(new { message = $"Search failed: Service Request {id} does not exist." }); 
             }
 
             return Ok(serviceRequest);
@@ -68,7 +68,7 @@ namespace GLMS.API.Controllers
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                return BadRequest(new { message = "Validation processing errors found.", validationErrors = errors }); // HTTP 400
+                return BadRequest(new { message = "Validation processing errors found.", validationErrors = errors }); 
             }
 
             //query to see if parent contract exists in database

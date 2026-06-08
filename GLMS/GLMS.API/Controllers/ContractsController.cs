@@ -40,9 +40,9 @@ namespace GLMS.API.Controllers
 
         //GET - all contracts
         [HttpGet]
-        public async Task<IActionResult> GetContracts([FromQuery] string? startDateFrom, [FromQuery] string? startDateTo, [FromQuery] string? status) //[FromQuery] maps URL prameters to method arguements + allows for easy filtering by API
+        public async Task<IActionResult> GetContracts([FromQuery] string? startDateFrom, [FromQuery] string? startDateTo, [FromQuery] string? status) 
         {
-            var contractQuery = _context.Contracts.Include(c => c.Client).AsQueryable(); //AsQueryable() instead of toList() - prepares server for the query rather than pulling all the contracts NOW
+            var contractQuery = _context.Contracts.Include(c => c.Client).AsQueryable(); 
 
             if(!string.IsNullOrEmpty(startDateFrom) && DateTime.TryParse(startDateFrom, out var dateFrom))
             {
@@ -184,17 +184,14 @@ namespace GLMS.API.Controllers
                 existingContract.startDate = DateTime.Parse(startDate);
                 existingContract.endDate = DateTime.Parse(endDate);
 
-                // FIX: Only update the signedAgreementPath if a new file is uploaded
-                // Otherwise, keep the existing path from the database
                 if (pdfUpload != null && pdfUpload.Length > 0)
                 {
-                    // New PDF uploaded - handle it
+
                     if (Path.GetExtension(pdfUpload.FileName).ToLower() != ".pdf")
                     {
                         return BadRequest(new { message = "Only PDF files are allowed." });
                     }
 
-                    // Delete old file if it exists
                     if (!string.IsNullOrEmpty(existingContract.signedAgreementPath))
                     {
                         string oldFilePath = Path.Combine(AppContext.BaseDirectory, "wwwroot", existingContract.signedAgreementPath.TrimStart('/'));
@@ -214,8 +211,7 @@ namespace GLMS.API.Controllers
 
                     existingContract.signedAgreementPath = "/uploads/" + uniqueFileName;
                 }
-                // FIX: DO NOT update signedAgreementPath if no new PDF is uploaded
-                // Keep the existing value from the database
+
 
                 existingContract.LastModified = DateTime.Now;
 
