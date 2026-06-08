@@ -36,17 +36,17 @@ namespace Global_Logistics_Management_System___ST10439898
             //for the API
             builder.Services.AddHttpClient<ClientApiService>(client =>
             {
-                client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7048");
+                client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://glms.api:8080/");
             });
 
             builder.Services.AddHttpClient<ContractApiService>(client =>
             {
-                client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7048");
+                client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://glms.api:8080/");
             });
 
             builder.Services.AddHttpClient<ServiceRequestApiService>(client =>
             {
-                client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7048");
+                client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "http://glms.api:8080/");
             });
 
             builder.Services.AddHttpContextAccessor();

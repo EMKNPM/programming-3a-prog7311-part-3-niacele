@@ -48,7 +48,6 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         // GET: ServiceRequest/Create
         public async Task<IActionResult> Create()
         {
-            // fetch only the contracts with active status to populate drop down
             var contracts = await _contractApiService.GetContractsAsync(null, null, "Active");
 
             var dropdownData = contracts.Select(c => new {
@@ -61,8 +60,6 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         }
 
         // POST: ServiceRequest/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ServiceRequestViewModel serviceRequest)
@@ -72,7 +69,6 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
                 await PopulateContractsDropdownAsync(serviceRequest.contractID);
                 return View(serviceRequest);
             }
-
 
             var response = await _serviceRequestApiService.CreateServiceRequestAsync(serviceRequest);
 
@@ -105,8 +101,6 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         }
 
         // POST: ServiceRequest/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ServiceRequestViewModel serviceRequest)
@@ -129,13 +123,12 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // display error message if this fails
             ModelState.AddModelError("", "API Error: Failed to save modifications.");
             await PopulateAllContractsDropdownAsync(serviceRequest.contractID);
             return View(serviceRequest);
         }
 
-        // this is for the currency conversion and makes it so that the user wont have to press calculate in order to see the converted price
+        // Currency conversion
         [HttpGet]
         public async Task<IActionResult> ConvertCurrency(decimal amount, string fromCurrency)
         {
@@ -176,7 +169,6 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
             return RedirectToAction(nameof(Delete), new { id = id, error = "Delete request rejected." });
         }
 
-        // helper methods that populate the dropdown for the contract during creation and editing a service request
         private async Task PopulateContractsDropdownAsync(int selectedId)
         {
             var contracts = await _contractApiService.GetContractsAsync(null, null, "Active");

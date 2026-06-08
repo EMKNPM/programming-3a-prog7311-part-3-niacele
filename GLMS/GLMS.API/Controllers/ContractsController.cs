@@ -149,72 +149,91 @@ namespace GLMS.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateContract(int id, [FromForm] int contractID, [FromForm] int clientID, [FromForm] string startDate, [FromForm] string endDate, [FromForm] string contractStatus, [FromForm] string serviceLevel, [FromForm] string signedAgreementPath, IFormFile? pdfUpload)
         {
-            // ensures URL ID matches form contractID
-            if (id != contractID)
-            {
-                return BadRequest(new { message = "Update rejected: URL ID parameter does not match form data ID" });
-            }
-
-            // find existing contract
-            var existingContract = await _context.Contracts
-                .Include(c => c.Client)
-                .FirstOrDefaultAsync(c => c.contractID == id);
-
-            if (existingContract == null)
-            {
-                return NotFound(new { message = $"Update failed: Contract with ID {id} does not exist." });
-            }
-
-            // update contract properties
-            existingContract.clientID = clientID;
-            existingContract.serviceLevel = serviceLevel;
-            existingContract.contractStatus = Enum.Parse<Contract.Status>(contractStatus);
-            existingContract.startDate = DateTime.Parse(startDate);
-            existingContract.endDate = DateTime.Parse(endDate);
-            existingContract.signedAgreementPath = signedAgreementPath;
-            existingContract.LastModified = DateTime.Now;
-
-            // handle new PDF upload if provided
-            if (pdfUpload != null && pdfUpload.Length > 0)
-            {
-                if (Path.GetExtension(pdfUpload.FileName).ToLower() != ".pdf")
-                {
-                    return BadRequest(new { message = "Only PDF files are allowed." });
-                }
-
-                string uniqueFileName = Guid.NewGuid().ToString() + ".pdf";
-                string filePath = Path.Combine(_uploadsFolder, uniqueFileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await pdfUpload.CopyToAsync(fileStream);
-                }
-
-                existingContract.signedAgreementPath = "/uploads/" + uniqueFileName;
-            }
-
-            // sync state from status (for the state pattern)
-            existingContract.SyncStateFromStatus();
-
-            _context.Entry(existingContract).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Contracts.Any(e => e.contractID == id))
+                // ensures URL ID matches form contractID
+                if (id != contractID)
                 {
-                    return NotFound(new { message = $"Update failed: Contract with ID {id} no longer exists." });
+                    return BadRequest(new { message = "Update rejected: URL ID parameter does not match form data ID" });
+                }
+
+                // find existing contract
+                var existingContract = await _context.Contracts
+                    .Include(c => c.Client)
+                    .FirstOrDefaultAsync(c => c.contractID == id);
+
+                if (existingContract == null)
+                {
+                    return NotFound(new { message = $"Update failed: Contract with ID {id} does not exist." });
+                }
+
+                // update contract properties
+                existingContract.clientID = clientID;
+                existingContract.serviceLevel = serviceLevel;
+
+                // Handle both integer and string status values
+                if (int.TryParse(contractStatus, out int statusInt))
+                {
+                    existingContract.contractStatus = (Contract.Status)statusInt;
                 }
                 else
                 {
-                    throw;
+                    existingContract.contractStatus = Enum.Parse<Contract.Status>(contractStatus);
                 }
-            }
 
-            return Ok(existingContract);
+                existingContract.startDate = DateTime.Parse(startDate);
+                existingContract.endDate = DateTime.Parse(endDate);
+
+                // FIX: Only update the signedAgreementPath if a new file is uploaded
+                // Otherwise, keep the existing path from the database
+                if (pdfUpload != null && pdfUpload.Length > 0)
+                {
+                    // New PDF uploaded - handle it
+                    if (Path.GetExtension(pdfUpload.FileName).ToLower() != ".pdf")
+                    {
+                        return BadRequest(new { message = "Only PDF files are allowed." });
+                    }
+
+                    // Delete old file if it exists
+                    if (!string.IsNullOrEmpty(existingContract.signedAgreementPath))
+                    {
+                        string oldFilePath = Path.Combine(AppContext.BaseDirectory, "wwwroot", existingContract.signedAgreementPath.TrimStart('/'));
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            System.IO.File.Delete(oldFilePath);
+                        }
+                    }
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + ".pdf";
+                    string filePath = Path.Combine(_uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await pdfUpload.CopyToAsync(fileStream);
+                    }
+
+                    existingContract.signedAgreementPath = "/uploads/" + uniqueFileName;
+                }
+                // FIX: DO NOT update signedAgreementPath if no new PDF is uploaded
+                // Keep the existing value from the database
+
+                existingContract.LastModified = DateTime.Now;
+
+                // sync state from status (for the state pattern)
+                existingContract.SyncStateFromStatus();
+
+                _context.Entry(existingContract).State = EntityState.Modified;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(existingContract);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: {ex.Message}");
+                Console.WriteLine($"STACK TRACE: {ex.StackTrace}");
+                return StatusCode(500, new { message = "Update failed", error = ex.Message, stackTrace = ex.StackTrace });
+            }
         }
 
         // DELETE - delete a specific contract

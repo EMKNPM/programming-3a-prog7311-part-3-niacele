@@ -1,18 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Global_Logistics_Management_System___ST10439898.ViewModels
 {
     public class ServiceRequestViewModel
     {
-        public int requestID {  get; set; }
+        public int requestID { get; set; }
         [Display(Name = "Associated Contract")]
         public int contractID { get; set; }
         [Display(Name = "Request Description")]
         public string description { get; set; }
         [Display(Name = "Converted Cost (ZAR)")]
-        [Precision(18,2)]
+        [Precision(18, 2)]
         public decimal costinZAR { get; set; }
 
         [Display(Name = "Original Cost")]
@@ -24,9 +25,8 @@ namespace Global_Logistics_Management_System___ST10439898.ViewModels
         [Display(Name = "Contract Reference Info")]
         public string? contractDisplayInfo { get; set; }
         [Display(Name = "Progress Status")]
+        [JsonPropertyName("requestStatus")]
         public requestStatus status { get; set; }
-        
-        public object? contract { get; set; } = null;
 
         //service request statuses for UI
         public enum requestStatus
@@ -38,6 +38,6 @@ namespace Global_Logistics_Management_System___ST10439898.ViewModels
         }
 
         //no relationships because API manages that
-        
+
     }
 }

@@ -1,5 +1,6 @@
-﻿using Global_Logistics_Management_System___ST10439898.ViewModels;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
+using System.Text.Json;
+using Global_Logistics_Management_System___ST10439898.ViewModels;
 
 namespace Global_Logistics_Management_System___ST10439898.Services
 {
@@ -16,9 +17,7 @@ namespace Global_Logistics_Management_System___ST10439898.Services
 
         private void AttachBearerToken()
         {
-            // grabs active token
             var token = _httpContextAccessor.HttpContext?.Session.GetString("JWToken");
-
             if (!string.IsNullOrEmpty(token))
             {
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -53,7 +52,7 @@ namespace Global_Logistics_Management_System___ST10439898.Services
         // CREATE - create new service request
         public async Task<HttpResponseMessage> CreateServiceRequestAsync(ServiceRequestViewModel serviceRequest)
         {
-            var response = await _httpClient.PostAsJsonAsync("api/ServiceRequests", serviceRequest);
+            AttachBearerToken();
             return await _httpClient.PostAsJsonAsync("api/ServiceRequests", serviceRequest);
         }
 
@@ -61,7 +60,6 @@ namespace Global_Logistics_Management_System___ST10439898.Services
         public async Task<HttpResponseMessage> UpdateServiceRequestAsync(int id, ServiceRequestViewModel serviceRequest)
         {
             AttachBearerToken();
-
             return await _httpClient.PutAsJsonAsync($"api/ServiceRequests/{id}", serviceRequest);
         }
 
@@ -69,7 +67,6 @@ namespace Global_Logistics_Management_System___ST10439898.Services
         public async Task<HttpResponseMessage> DeleteServiceRequestAsync(int id)
         {
             AttachBearerToken();
-
             return await _httpClient.DeleteAsync($"api/ServiceRequests/{id}");
         }
 
@@ -80,7 +77,6 @@ namespace Global_Logistics_Management_System___ST10439898.Services
 
             try
             {
-                // forwards info to the currency converter through the API
                 string queryPath = $"api/ServiceRequests/convert-currency?amount={amount}&fromCurrency={fromCurrency}";
                 return await _httpClient.GetFromJsonAsync<CurrencyConversionResult>(queryPath);
             }
@@ -91,7 +87,6 @@ namespace Global_Logistics_Management_System___ST10439898.Services
         }
     }
 
-    // helps convert the JSON result we get from the API into plain text
     public class CurrencyConversionResult
     {
         public bool Success { get; set; }

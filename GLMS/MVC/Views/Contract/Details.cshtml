@@ -112,6 +112,8 @@
     .action-buttons {
         padding: 20px 30px 30px 30px;
         display: flex;
+        align-items: center;
+        flex-wrap: wrap;
         gap: 15px;
         background-color: #f8f9fa;
         margin-top: 10px;
@@ -228,6 +230,30 @@
 
     <div class="action-buttons">
         <a asp-action="Edit" asp-route-id="@Model?.contractID" class="btn-edit">✏️ Edit Contract</a>
+        
+        @if (Model?.contractStatus.ToString() == "0" || (int)Model.contractStatus == 0)
+        {
+            <form asp-action="Edit" method="post" enctype="multipart/form-data" class="m-0">
+                <input type="hidden" name="contractID" value="@Model.contractID" />
+                <input type="hidden" name="clientID" value="@Model.clientID" />
+                <input type="hidden" name="serviceLevel" value="@Model.serviceLevel" />
+                <input type="hidden" name="signedAgreementPath" value="@Model.signedAgreementPath" />
+        
+                <input type="hidden" name="startDate" value="@Model.startDate.ToString("yyyy-MM-dd")" />
+                <input type="hidden" name="endDate" value="@Model.endDate.ToString("yyyy-MM-dd")" />
+        
+                <input type="hidden" name="contractStatus" value="1" />
+
+                <button type="submit" class="btn btn-success fw-bold px-4 text-white" style="background-color: #27AE60; border: none; border-radius: 6px; height: 44px; font-weight: 600; cursor: pointer;">
+                    ⚡ Quick Activate
+                </button>
+            </form>
+        }
+        else
+        {
+            <span class="text-muted small d-flex align-items-center"><i class="me-1">✅</i> Contract is live</span>
+        }
+
         <a asp-action="Index" class="btn-back">← Back to List</a>
     </div>
 </div>

@@ -183,12 +183,16 @@
 
             <div class="form-group">
                 <label asp-for="contractStatus" class="control-label">Contract Status</label>
-                <select asp-for="contractStatus" class="form-control">
-                    <option value="Draft">Draft</option>
-                    <option value="Active">Active</option>
-                    <option value="OnHold">On Hold</option>
-                    <option value="Expired">Expired</option>
-                </select>
+                <div class="form-group">
+                    <label asp-for="contractStatus" class="control-label">Contract Status</label>
+                    <select asp-for="contractStatus" class="form-control">
+                        <option value="0">Draft</option>
+                        <option value="1">Active</option>
+                        <option value="2">On Hold</option>
+                        <option value="3">Expired</option>
+                    </select>
+                    <span asp-validation-for="contractStatus" class="text-danger"></span>
+                </div>
                 <span asp-validation-for="contractStatus" class="text-danger"></span>
             </div>
 
@@ -219,12 +223,6 @@
         </form>
     </div>
 </div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
 
 @section Scripts {
     @{

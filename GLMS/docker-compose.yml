@@ -1,0 +1,21 @@
+version: '3.4'
+
+services:
+  glms.db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+
+  glms.api:
+    image: ${DOCKER_REGISTRY-}glmsapi
+    build:
+      context: .
+      dockerfile: GLMS.API/Dockerfile
+    depends_on:
+      - glms.db
+
+  glms.mvc:
+    image: ${DOCKER_REGISTRY-}glmsmvc
+    build:
+      context: .
+      dockerfile: MVC/Dockerfile
+    depends_on:
+      - glms.api
