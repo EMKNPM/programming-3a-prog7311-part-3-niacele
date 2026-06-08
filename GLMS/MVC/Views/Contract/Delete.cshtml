@@ -1,0 +1,198 @@
+@model Global_Logistics_Management_System___ST10439898.ViewModels.ContractViewModel
+
+
+@{
+    ViewData["Title"] = "Delete Contract";
+}
+
+<style>
+    .delete-card {
+        max-width: 600px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .delete-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .warning-text {
+        color: #c0392b;
+        font-size: 1.2rem;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .contract-info {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid #E67E22;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 8px 0;
+        border-bottom: 1px solid #ecf0f1;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        font-weight: 600;
+        color: #2C3E50;
+        width: 130px;
+        flex-shrink: 0;
+    }
+
+    .info-value {
+        color: #34495E;
+        flex: 1;
+    }
+
+        .info-value a {
+            color: #E67E22;
+            text-decoration: none;
+        }
+
+            .info-value a:hover {
+                text-decoration: underline;
+            }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .status-draft {
+        background-color: #95a5a6;
+        color: white;
+    }
+
+    .status-active {
+        background-color: #27AE60;
+        color: white;
+    }
+
+    .status-onhold {
+        background-color: #E67E22;
+        color: white;
+    }
+
+    .status-expired {
+        background-color: #c0392b;
+        color: white;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 25px;
+    }
+
+    .btn-delete {
+        background-color: #c0392b;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-delete:hover {
+            background-color: #a93226;
+        }
+
+    .btn-back {
+        background-color: #95a5a6;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-back:hover {
+            background-color: #7f8c8d;
+            color: white;
+        }
+
+    hr {
+        display: none;
+    }
+</style>
+
+<div class="delete-card">
+    <div class="delete-icon">🗑️</div>
+    <div class="warning-text">⚠️ Are you sure you want to delete this contract?</div>
+
+    <div class="contract-info">
+        <div class="info-row">
+            <div class="info-label">Contract ID:</div>
+            <div class="info-value">#@Html.DisplayFor(model => model.contractID)</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Client:</div>
+            <div class="info-value">
+                <strong>@Html.DisplayFor(model => model.clientCompanyName)</strong><br />
+                
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Service Level:</div>
+            <div class="info-value">@Html.DisplayFor(model => model.serviceLevel)</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Start Date:</div>
+            <div class="info-value">@Model.startDate.ToString("yyyy-MM-dd")</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">End Date:</div>
+            <div class="info-value">@Model.endDate.ToString("yyyy-MM-dd")</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Status:</div>
+            <div class="info-value">
+                @{
+                    string statusClass = Model.contractStatus.ToString().ToLower();
+                }
+                <span class="status-badge status-@statusClass">
+                    @Html.DisplayFor(model => model.contractStatus)
+                </span>
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.signedAgreementPath))
+        {
+            <div class="info-row">
+                <div class="info-label">Agreement:</div>
+                <div class="info-value">
+                    <a href="@Model.signedAgreementPath" target="_blank">📄 View Signed Agreement</a>
+                </div>
+            </div>
+        }
+    </div>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="contractID" />
+        <div class="action-buttons">
+            <input type="submit" value="Yes, Delete Contract" class="btn-delete" />
+            <a asp-action="Index" class="btn-back">Cancel</a>
+        </div>
+    </form>
+</div>
