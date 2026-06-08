@@ -23,9 +23,9 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         public async Task<IActionResult> Index()
         {
             //pulls client list through API service
-            var clients = await _apiService.GetClientAsync();
+            var clients = await _apiService.GetClientsAsync();
 
-            return ViewModels(clients);
+            return View(clients);
         }
 
         // GET: Client/Details/5
@@ -52,7 +52,7 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Client client) //no more Bind because ViewModel validates the incoming data
+        public async Task<IActionResult> Create(ClientViewModel client) //no more Bind because ViewModel validates the incoming data
         {
             if(!ModelState.IsValid)
     {
@@ -75,7 +75,7 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
             }
 
             ModelState.AddModelError("", "API Error: Client account profile could not be saved.");
-            return ViewModels(client);
+            return View(client);
         }
 
         // GET: Client/Edit/5
@@ -94,7 +94,7 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Client client) //no more Bind because ViewModel validates incoming data
+        public async Task<IActionResult> Edit(int id, ClientViewModel client) //no more Bind because ViewModel validates incoming data
         {
             if (id != client.clientID)
             {
@@ -123,7 +123,7 @@ namespace Global_Logistics_Management_System___ST10439898.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             //fetching client from database in API
-            var client = await _apiService.GetClientByIdAsyc(id);
+            var client = await _apiService.GetClientByIdAsync(id);
 
             if (client == null)
             {
